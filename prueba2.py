@@ -1,14 +1,32 @@
 from influxdb import InfluxDBClient
 import serial
 import struct
+# from datetime import datetime, time
 import time
-from datetime import datetime
+import datetime
 import pytz
 import random
+import sys
+
+def display_bright(level):
+    command = f'dim={level}'
+    ser.write(command.encode())
+    ser.write(eof)
+    ser.write(eof)
+    ser.write(eof)   
+
 
 # Open the serial port connection
+print("Iniciando ejecución monitor...")
+
 ser = serial.Serial('/dev/ttyAMA0', 9600)  # Replace /dev/ttyUSB0 with the appropriate port
 eof = struct.pack('B', 0xff)
+
+display_bright(40)
+#time.sleep(60)
+print("Inicializando....")
+#sys.exit(0)
+
 
 # InfluxDB connection details
 host = '192.168.0.236'
@@ -85,7 +103,7 @@ color_pairs = [
 
 def convert_rfc3339_to_custom_format(rfc3339_date_str):
     # Parse the RFC3339 date string
-    dt = datetime.fromisoformat(rfc3339_date_str.replace('Z', '+00:00'))
+    dt = datetime.datetime.fromisoformat(rfc3339_date_str.replace('Z', '+00:00'))
     
     # Define the target timezone
     target_timezone = pytz.timezone('America/Santiago')
@@ -153,6 +171,7 @@ def display_text(field, text, fore, back):
     ser.write(eof)
     ser.write(eof)
 
+ 
     
 def display_ht(room, hourfield, hourvalue, temperaturefield, temperaturevalue, humfield, humvalue ):
     fore,back = (cwhite, cblack)
@@ -178,7 +197,19 @@ mhliving = 'monitoring/vecinal/rbpico/living/humedad'
 mhpiezamami = 'monitoring/vecinal/rbpico/piezamami/humedad'
 mhventana = 'monitoring/vecinal/rbpico/ventana/humedad'
 
+print("Iniciando loop....")
+display_bright(10)
+
 while True:
+    current_time = datetime.datetime.now().time()
+    start_time = datetime.time(7, 0)  # 7:00 AM
+    end_time = datetime.time(23, 0)  # 11:00 PM
+    
+    if start_time <= current_time <= end_time:
+        display_bright(100)
+    else:
+        display_bright(10)
+        
     hpiezajuan, tpiezajuan = get_last_value(mtpiezajuan)
     hescalera, tescalera  = get_last_value(mtescalera)
     hliving, tliving = get_last_value(mtliving)
